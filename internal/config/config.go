@@ -18,10 +18,15 @@ type DatabaseConfig struct {
 	DSN string `envconfig:"DATABASE__DSN"`
 }
 
+type EncryptionConfig struct {
+	Key string `envconfig:"ENCRYPTION__KEY"`
+}
+
 type Config struct {
-	Http     HttpConfig
-	Redis    RedisConfig
-	Database DatabaseConfig
+	Http       HttpConfig
+	Redis      RedisConfig
+	Database   DatabaseConfig
+	Encryption EncryptionConfig
 }
 
 var instance = Config{
@@ -34,6 +39,7 @@ var instance = Config{
 	Database: DatabaseConfig{
 		DSN: "mysql://root@tcp(localhost:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local",
 	},
+	Encryption: EncryptionConfig{},
 }
 
 func New() (Config, error) {
