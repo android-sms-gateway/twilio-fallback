@@ -5,6 +5,7 @@ import (
 	"github.com/android-sms-gateway/core/logger"
 	"github.com/android-sms-gateway/core/redis"
 	"github.com/android-sms-gateway/core/validator"
+	"github.com/android-sms-gateway/twilio-fallback/internal/auth"
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
 	"github.com/android-sms-gateway/twilio-fallback/internal/encryption"
 	"github.com/android-sms-gateway/twilio-fallback/internal/health"
@@ -31,6 +32,7 @@ func Run() {
 
 		health.Module,
 
+		auth.Module,
 		server.Module,
 		encryption.Module,
 		// api.Module,
