@@ -6,6 +6,7 @@ import (
 	"github.com/android-sms-gateway/core/redis"
 	"github.com/android-sms-gateway/core/validator"
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
+	"github.com/android-sms-gateway/twilio-fallback/internal/encryption"
 	"github.com/android-sms-gateway/twilio-fallback/internal/health"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
 	"go.uber.org/fx"
@@ -31,6 +32,7 @@ func Run() {
 		health.Module,
 
 		server.Module,
+		encryption.Module,
 		// api.Module,
 		// csr.Module,
 	).
