@@ -1,0 +1,123 @@
+{
+    "schemes": [
+        "https"
+    ],
+    "swagger": "2.0",
+    "info": {
+        "description": "Provides a fallback for Twilio SMS messages via SMS Gate",
+        "title": "SMS Gate Twilio Fallback API",
+        "contact": {
+            "name": "SMSGate Support",
+            "email": "support@sms-gate.app"
+        },
+        "license": {
+            "name": "Apache 2.0",
+            "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
+        },
+        "version": "{{VERSION}}"
+    },
+    "host": "twilio.sms-gate.app",
+    "paths": {
+        "/health": {
+            "get": {
+                "description": "Checks if service is healthy",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "System"
+                ],
+                "summary": "Health check",
+                "responses": {
+                    "200": {
+                        "description": "Health check result",
+                        "schema": {
+                            "$ref": "#/definitions/smsgateway.HealthResponse"
+                        }
+                    },
+                    "503": {
+                        "description": "Service is unhealthy",
+                        "schema": {
+                            "$ref": "#/definitions/smsgateway.HealthResponse"
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "definitions": {
+        "smsgateway.HealthCheck": {
+            "type": "object",
+            "properties": {
+                "description": {
+                    "description": "A human-readable description of the check.",
+                    "type": "string"
+                },
+                "observedUnit": {
+                    "description": "Unit of measurement for the observed value.",
+                    "type": "string"
+                },
+                "observedValue": {
+                    "description": "Observed value of the check.",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "Status of the check.\nIt can be one of the following values: \"pass\", \"warn\", or \"fail\".",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/smsgateway.HealthStatus"
+                        }
+                    ]
+                }
+            }
+        },
+        "smsgateway.HealthChecks": {
+            "type": "object",
+            "additionalProperties": {
+                "$ref": "#/definitions/smsgateway.HealthCheck"
+            }
+        },
+        "smsgateway.HealthResponse": {
+            "type": "object",
+            "properties": {
+                "checks": {
+                    "description": "A map of check names to their respective details.",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/smsgateway.HealthChecks"
+                        }
+                    ]
+                },
+                "releaseId": {
+                    "description": "Release ID of the application.\nIt is used to identify the version of the application.",
+                    "type": "integer"
+                },
+                "status": {
+                    "description": "Overall status of the application.\nIt can be one of the following values: \"pass\", \"warn\", or \"fail\".",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/smsgateway.HealthStatus"
+                        }
+                    ]
+                },
+                "version": {
+                    "description": "Version of the application.",
+                    "type": "string"
+                }
+            }
+        },
+        "smsgateway.HealthStatus": {
+            "type": "string",
+            "enum": [
+                "pass",
+                "warn",
+                "fail"
+            ],
+            "x-enum-varnames": [
+                "HealthStatusPass",
+                "HealthStatusWarn",
+                "HealthStatusFail"
+            ]
+        }
+    }
+}
