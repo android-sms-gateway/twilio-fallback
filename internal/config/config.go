@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/android-sms-gateway/core/config"
 )
 
@@ -22,11 +24,17 @@ type EncryptionConfig struct {
 	Key string `envconfig:"ENCRYPTION__KEY"`
 }
 
+type AuthConfig struct {
+	Secret string        `envconfig:"AUTH__SECRET"`
+	Expiry time.Duration `envconfig:"AUTH__EXPIRY"`
+}
+
 type Config struct {
 	Http       HttpConfig
 	Redis      RedisConfig
 	Database   DatabaseConfig
 	Encryption EncryptionConfig
+	Auth       AuthConfig
 }
 
 var instance = Config{
@@ -40,6 +48,9 @@ var instance = Config{
 		DSN: "mysql://root@tcp(localhost:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local",
 	},
 	Encryption: EncryptionConfig{},
+	Auth: AuthConfig{
+		Expiry: 24 * time.Hour,
+	},
 }
 
 func New() (Config, error) {

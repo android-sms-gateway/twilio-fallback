@@ -1,7 +1,21 @@
 @baseUrl=http://localhost:3000
+@token={{$dotenv TOKEN}}
 
 ###
 GET {{baseUrl}}/ HTTP/1.1
 
 ###
 GET {{baseUrl}}/health HTTP/1.1
+
+###
+POST {{baseUrl}}/auth/login HTTP/1.1
+Content-Type: application/json
+
+{
+    "username": "admin",
+    "password": "password"
+}
+
+###
+GET {{baseUrl}}/dashboard HTTP/1.1
+Authorization: Bearer {{token}}
