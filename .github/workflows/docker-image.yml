@@ -60,6 +60,9 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     concurrency: production
+    permissions:
+      contents: read
+      deployments: write
     env:
       DEPLOY_WEBHOOK_URL: ${{ secrets.DEPLOY_WEBHOOK_URL }}
     if: ${{ startsWith(github.ref, 'refs/tags/v') }}
