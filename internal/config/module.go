@@ -6,6 +6,7 @@ import (
 	"github.com/android-sms-gateway/twilio-fallback/internal/auth"
 	"github.com/android-sms-gateway/twilio-fallback/internal/encryption"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
+	"github.com/android-sms-gateway/twilio-fallback/pkg/core/db"
 	"go.uber.org/fx"
 )
 
@@ -41,6 +42,15 @@ var Module = fx.Module(
 				Requests: c.Server.RateLimit.Requests,
 				Period:   c.Server.RateLimit.Period,
 			},
+		}
+	}),
+	fx.Provide(func(c Config) db.Config {
+		return db.Config{
+			DSN:             c.Database.DSN,
+			ConnMaxIdleTime: 0,
+			ConnMaxLifetime: 0,
+			MaxOpenConns:    0,
+			MaxIdleConns:    0,
 		}
 	}),
 )

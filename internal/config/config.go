@@ -1,6 +1,7 @@
 package config
 
 import (
+	"runtime"
 	"time"
 
 	"github.com/android-sms-gateway/core/config"
@@ -17,7 +18,11 @@ type RedisConfig struct {
 }
 
 type DatabaseConfig struct {
-	DSN string `envconfig:"DATABASE__DSN"`
+	DSN             string        `envconfig:"DATABASE__DSN"`
+	ConnMaxIdleTime time.Duration `envconfig:"DATABASE__CONN_MAX_IDLE_TIME"`
+	ConnMaxLifetime time.Duration `envconfig:"DATABASE__CONN_MAX_LIFETIME"`
+	MaxOpenConns    int           `envconfig:"DATABASE__MAX_OPEN_CONNS"`
+	MaxIdleConns    int           `envconfig:"DATABASE__MAX_IDLE_CONNS"`
 }
 
 type EncryptionConfig struct {
@@ -37,7 +42,6 @@ type RateLimitConfig struct {
 type ServerConfig struct {
 	RateLimit RateLimitConfig
 }
-
 type Config struct {
 	Http       HttpConfig
 	Redis      RedisConfig
@@ -55,7 +59,11 @@ var instance = Config{
 		URL: "redis://localhost:6379",
 	},
 	Database: DatabaseConfig{
-		DSN: "mysql://root@tcp(localhost:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local",
+		DSN:             "mysql://root@tcp(localhost:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local",
+		ConnMaxIdleTime: 3 * time.Minute,
+		ConnMaxLifetime: 30 * time.Minute,
+		MaxOpenConns:    runtime.NumCPU() * 4,
+		MaxIdleConns:    runtime.NumCPU() * 2,
 	},
 	Encryption: EncryptionConfig{},
 	Auth: AuthConfig{
