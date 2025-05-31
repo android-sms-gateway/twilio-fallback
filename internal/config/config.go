@@ -29,12 +29,22 @@ type AuthConfig struct {
 	Expiry time.Duration `envconfig:"AUTH__EXPIRY"`
 }
 
+type RateLimitConfig struct {
+	Requests int           `envconfig:"SERVER__RATE_LIMIT__REQUESTS"`
+	Period   time.Duration `envconfig:"SERVER__RATE_LIMIT__PERIOD"`
+}
+
+type ServerConfig struct {
+	RateLimit RateLimitConfig
+}
+
 type Config struct {
 	Http       HttpConfig
 	Redis      RedisConfig
 	Database   DatabaseConfig
 	Encryption EncryptionConfig
 	Auth       AuthConfig
+	Server     ServerConfig
 }
 
 var instance = Config{
@@ -50,6 +60,12 @@ var instance = Config{
 	Encryption: EncryptionConfig{},
 	Auth: AuthConfig{
 		Expiry: 24 * time.Hour,
+	},
+	Server: ServerConfig{
+		RateLimit: RateLimitConfig{
+			Requests: 100,
+			Period:   time.Minute,
+		},
 	},
 }
 
