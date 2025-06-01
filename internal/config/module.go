@@ -5,8 +5,10 @@ import (
 	"github.com/android-sms-gateway/core/redis"
 	"github.com/android-sms-gateway/twilio-fallback/internal/auth"
 	"github.com/android-sms-gateway/twilio-fallback/internal/encryption"
+	"github.com/android-sms-gateway/twilio-fallback/internal/proxy"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
 	"github.com/android-sms-gateway/twilio-fallback/pkg/core/db"
+	"github.com/android-sms-gateway/twilio-fallback/pkg/core/orm"
 	"go.uber.org/fx"
 )
 
@@ -46,11 +48,21 @@ var Module = fx.Module(
 	}),
 	fx.Provide(func(c Config) db.Config {
 		return db.Config{
-			DSN:             c.Database.DSN,
-			ConnMaxIdleTime: 0,
-			ConnMaxLifetime: 0,
-			MaxOpenConns:    0,
-			MaxIdleConns:    0,
+			URL:             c.Database.URL,
+			ConnMaxIdleTime: c.Database.ConnMaxIdleTime,
+			ConnMaxLifetime: c.Database.ConnMaxLifetime,
+			MaxOpenConns:    c.Database.MaxOpenConns,
+			MaxIdleConns:    c.Database.MaxIdleConns,
+		}
+	}),
+	fx.Provide(func(c Config) orm.Config {
+		return orm.Config{
+			Debug: c.Debug,
+		}
+	}),
+	fx.Provide(func(c Config) proxy.Config {
+		return proxy.Config{
+			BaseURL: c.Proxy.BaseURL,
 		}
 	}),
 )

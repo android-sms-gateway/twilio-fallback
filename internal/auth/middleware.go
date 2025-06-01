@@ -11,8 +11,9 @@ var (
 	ErrUnauthorized = keyauth.ErrMissingOrMalformedAPIKey
 )
 
-func JWTMiddleware(service *AuthService) fiber.Handler {
+func JWTMiddleware(service Service) fiber.Handler {
 	return keyauth.New(keyauth.Config{
+		KeyLookup: "cookie:token",
 		Validator: func(c *fiber.Ctx, token string) (bool, error) {
 			userID, err := service.ValidateToken(token)
 			if err != nil {

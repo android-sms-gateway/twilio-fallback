@@ -3,8 +3,8 @@ package server
 import "time"
 
 type RateLimitConfig struct {
-	Requests int           `envconfig:"SERVER__RATE_LIMIT__REQUESTS"`
-	Period   time.Duration `envconfig:"SERVER__RATE_LIMIT__PERIOD"`
+	Requests int
+	Period   time.Duration
 }
 
 type Config struct {

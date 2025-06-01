@@ -8,14 +8,24 @@ GET {{baseUrl}}/ HTTP/1.1
 GET {{baseUrl}}/health HTTP/1.1
 
 ###
+POST {{baseUrl}}/auth/register HTTP/1.1
+Content-Type: application/json
+
+{
+    "login": "admin",
+    "password": "password",
+    "twilio_account_sid": "sid",
+    "twilio_auth_token": "token"
+}
+
+###
 POST {{baseUrl}}/auth/login HTTP/1.1
 Content-Type: application/json
 
 {
-    "username": "admin",
+    "login": "admin",
     "password": "password"
 }
 
 ###
 GET {{baseUrl}}/dashboard HTTP/1.1
-Authorization: Bearer {{token}}

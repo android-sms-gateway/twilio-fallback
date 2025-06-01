@@ -14,29 +14,34 @@ import (
 	"go.uber.org/zap"
 
 	"github.com/android-sms-gateway/twilio-fallback/internal/auth"
+	"github.com/android-sms-gateway/twilio-fallback/internal/proxy"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server/handlers"
+	"github.com/android-sms-gateway/twilio-fallback/internal/server/middleware"
+	"github.com/android-sms-gateway/twilio-fallback/internal/users"
 )
 
 func TestAuthFlow(t *testing.T) {
 	logger, _ := zap.NewProduction()
 	validator := validator.New()
-	authService := auth.NewAuthService(logger, "secret", time.Hour)
-	authHandler := handlers.NewAuthHandler(logger, validator, authService)
-	dashboardHandler := handlers.NewDashboardHandler(logger)
+	authService := auth.NewService(logger, "secret", time.Hour)
+	userService := users.NewService(nil, nil, logger)
+	proxyService := proxy.NewService("localhost")
+	authHandler := handlers.NewAuthHandler(logger, validator, authService, userService)
+	dashboardHandler := handlers.NewDashboardHandler(proxyService, logger, validator)
 
 	app := fiber.New()
 
 	// Setup auth routes
 	authGroup := app.Group("/auth")
-	authGroup.Post("/login", authHandler.Login)
+	authHandler.Register(authGroup)
 
 	// Setup protected dashboard route
-	protected := app.Group("/dashboard", auth.JWTMiddleware(authService))
-	protected.Get("/", dashboardHandler.GetDashboard)
+	protected := app.Group("/dashboard", auth.JWTMiddleware(authService), middleware.UserMiddleware(userService, logger))
+	dashboardHandler.Register(protected)
 
 	t.Run("successful auth flow", func(t *testing.T) {
 		// Step 1: Login to get token
-		loginReqBody := `{"username": "admin", "password": "password"}`
+		loginReqBody := `{"sms_gateway_login": "admin", "sms_gateway_password": "password", "twilio_account_sid": "sid", "twilio_auth_token": "token"}`
 		loginReq := httptest.NewRequest(http.MethodPost, "/auth/login", strings.NewReader(loginReqBody))
 		loginReq.Header.Set("Content-Type", "application/json")
 

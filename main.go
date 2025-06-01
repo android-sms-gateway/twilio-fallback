@@ -1,6 +1,11 @@
 package main
 
-import "github.com/android-sms-gateway/twilio-fallback/internal"
+import (
+	"embed"
+	"os"
+
+	"github.com/android-sms-gateway/twilio-fallback/internal"
+)
 
 //go:generate swag init --parseDependency -g ./main.go -o ./api
 
@@ -17,6 +22,29 @@ import "github.com/android-sms-gateway/twilio-fallback/internal"
 //	@host		twilio.sms-gate.app
 //	@schemes	https
 
+//go:embed migrations
+var migrationsFS embed.FS
+
 func main() {
-	internal.Run()
+	cmd := ""
+	if len(os.Args) > 1 {
+		cmd = os.Args[1]
+	}
+
+	switch cmd {
+	case "":
+		fallthrough
+	case "run":
+		internal.Run()
+
+	case "db:auto-migrate":
+		internal.RunORMMigrations()
+
+	case "db:migrate":
+		internal.RunMigrations(migrationsFS)
+
+	default:
+		panic("unknown command: " + cmd)
+	}
+
 }

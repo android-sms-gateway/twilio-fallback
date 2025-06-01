@@ -14,14 +14,19 @@ var (
 	ErrExpiredToken = errors.New("expired token")
 )
 
-type AuthService struct {
+type Service interface {
+	GenerateToken(userID string) (string, error)
+	ValidateToken(tokenString string) (string, error)
+}
+
+type service struct {
 	secret string
 	expiry time.Duration
 
 	logger *zap.Logger
 }
 
-func NewAuthService(logger *zap.Logger, secret string, expiry time.Duration) *AuthService {
+func NewService(logger *zap.Logger, secret string, expiry time.Duration) Service {
 	if logger == nil {
 		panic("logger is nil")
 	}
@@ -34,14 +39,14 @@ func NewAuthService(logger *zap.Logger, secret string, expiry time.Duration) *Au
 		panic("expiry is zero")
 	}
 
-	return &AuthService{
+	return &service{
 		logger: logger,
 		secret: secret,
 		expiry: expiry,
 	}
 }
 
-func (s *AuthService) GenerateToken(userID string) (string, error) {
+func (s *service) GenerateToken(userID string) (string, error) {
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, jwt.MapClaims{
 		"iat": time.Now().Unix(),
 		"nbf": time.Now().Unix(),
@@ -59,7 +64,7 @@ func (s *AuthService) GenerateToken(userID string) (string, error) {
 	return tokenString, nil
 }
 
-func (s *AuthService) ValidateToken(tokenString string) (string, error) {
+func (s *service) ValidateToken(tokenString string) (string, error) {
 	token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
 			return nil, ErrInvalidToken

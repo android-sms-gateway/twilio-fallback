@@ -17,7 +17,7 @@ import (
 
 func TestJWTMiddleware(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
-	authService := auth.NewAuthService(logger, "secret", time.Hour)
+	authService := auth.NewService(logger, "secret", time.Hour)
 
 	// Generate a valid token
 	token, err := authService.GenerateToken("test-user")

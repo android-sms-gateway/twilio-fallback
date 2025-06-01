@@ -11,8 +11,8 @@ var Module = fx.Module(
 		return log.Named("auth")
 	}),
 	fx.Provide(
-		func(logger *zap.Logger, cfg Config) *AuthService {
-			return NewAuthService(logger, cfg.Secret, cfg.Expiry)
+		func(logger *zap.Logger, cfg Config) Service {
+			return NewService(logger, cfg.Secret, cfg.Expiry)
 		},
 	),
 )

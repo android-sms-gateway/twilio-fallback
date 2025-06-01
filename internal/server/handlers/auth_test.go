@@ -16,16 +16,18 @@ import (
 
 	"github.com/android-sms-gateway/twilio-fallback/internal/auth"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server/handlers"
+	"github.com/android-sms-gateway/twilio-fallback/internal/users"
 )
 
 func TestAuthHandler_Login(t *testing.T) {
 	logger, _ := zap.NewDevelopment()
 	validator := validator.New()
-	authService := auth.NewAuthService(logger, "secret", time.Hour)
-	handler := handlers.NewAuthHandler(logger, validator, authService)
+	authService := auth.NewService(logger, "secret", time.Hour)
+	userService := users.NewService(nil, nil, logger) // Mock service
+	handler := handlers.NewAuthHandler(logger, validator, authService, userService)
 
 	app := fiber.New()
-	app.Post("/login", handler.Login)
+	handler.Register(app)
 
 	t.Run("successful login", func(t *testing.T) {
 		reqBody := `{"username": "admin", "password": "password"}`
