@@ -3,11 +3,11 @@ package internal
 import (
 	"github.com/android-sms-gateway/core/http"
 	"github.com/android-sms-gateway/core/logger"
-	"github.com/android-sms-gateway/core/redis"
 	"github.com/android-sms-gateway/core/validator"
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
 	"github.com/android-sms-gateway/twilio-fallback/internal/health"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
+	"github.com/android-sms-gateway/twilio-fallback/internal/twilio"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
 	"go.uber.org/zap"
@@ -24,9 +24,9 @@ func Run() {
 		}),
 		http.Module,
 		validator.Module,
-		redis.Module,
 
 		config.Module,
+		twilio.Module,
 
 		health.Module,
 
