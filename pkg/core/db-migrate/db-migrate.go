@@ -58,4 +58,4 @@ func (s *Service) Down(ctx context.Context) error {
 	return nil
 }
 
-var _ = (Migrator)(new(Service))
+var _ Migrator = (*Service)(nil)

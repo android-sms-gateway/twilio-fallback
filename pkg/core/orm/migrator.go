@@ -13,11 +13,13 @@ func RegisterMigration(migrator Migrator) {
 }
 
 func RunMigrations(db *gorm.DB) error {
-	for _, migrator := range migrations {
-		if err := migrator(db); err != nil {
-			return err
+	return db.Transaction(func(tx *gorm.DB) error {
+		for _, migrator := range migrations {
+			if err := migrator(db); err != nil {
+				return err
+			}
 		}
-	}
 
-	return nil
+		return nil
+	})
 }

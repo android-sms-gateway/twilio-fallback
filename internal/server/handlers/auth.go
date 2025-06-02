@@ -54,13 +54,7 @@ func (h *AuthHandler) register(c *fiber.Ctx) error {
 	}
 
 	// Set cookie
-	c.Cookie(&fiber.Cookie{
-		Name:     "token",
-		Value:    token,
-		Expires:  time.Now().Add(24 * time.Hour),
-		HTTPOnly: true,
-		Secure:   true,
-	})
+	h.setAuthCookie(c, token)
 
 	// Redirect to dashboard
 	return c.Redirect("/dashboard")
@@ -89,6 +83,13 @@ func (h *AuthHandler) login(c *fiber.Ctx) error {
 	}
 
 	// Set cookie
+	h.setAuthCookie(c, token)
+
+	// Redirect to dashboard
+	return c.Redirect("/dashboard")
+}
+
+func (h *AuthHandler) setAuthCookie(c *fiber.Ctx, token string) {
 	c.Cookie(&fiber.Cookie{
 		Name:     "token",
 		Value:    token,
@@ -96,9 +97,6 @@ func (h *AuthHandler) login(c *fiber.Ctx) error {
 		HTTPOnly: true,
 		Secure:   true,
 	})
-
-	// Redirect to dashboard
-	return c.Redirect("/dashboard")
 }
 
 func (h *AuthHandler) Register(router fiber.Router) {

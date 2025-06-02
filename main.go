@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"fmt"
 	"os"
 
 	"github.com/android-sms-gateway/twilio-fallback/internal"
@@ -32,6 +33,9 @@ func main() {
 	}
 
 	switch cmd {
+	case "help", "-h", "--help":
+		printUsage()
+		return
 	case "":
 		fallthrough
 	case "run":
@@ -44,7 +48,17 @@ func main() {
 		internal.RunMigrations(migrationsFS)
 
 	default:
-		panic("unknown command: " + cmd)
+		fmt.Fprintf(os.Stderr, "Error: unknown command '%s'\n\n", cmd)
+		printUsage()
+		os.Exit(1)
 	}
+}
 
+func printUsage() {
+	fmt.Println("Usage: program [command]")
+	fmt.Println("Commands:")
+	fmt.Println("  run (default)    - Start the application")
+	fmt.Println("  db:auto-migrate  - Run ORM-based database migrations")
+	fmt.Println("  db:migrate       - Run file-based database migrations")
+	fmt.Println("  help             - Show this help message")
 }

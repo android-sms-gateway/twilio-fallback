@@ -9,11 +9,6 @@ import (
 	"gorm.io/gorm"
 )
 
-var (
-	ErrUserAlreadyExists  = errors.New("user already exists")
-	ErrInvalidCredentials = errors.New("invalid credentials")
-)
-
 type Service interface {
 	GetUser(ID string) (*User, error)
 	RegisterUser(login, password, accountSID, authToken string) (*User, error)
@@ -28,7 +23,7 @@ type service struct {
 
 // GetUser implements Service.
 func (s *service) GetUser(ID string) (*User, error) {
-	return s.repo.GetUser(ID)
+	return s.repo.GetByLogin(ID)
 }
 
 func NewService(repo Repository, encryptor encryption.Encryptor, logger *zap.Logger) Service {
@@ -40,8 +35,12 @@ func NewService(repo Repository, encryptor encryption.Encryptor, logger *zap.Log
 }
 
 func (s *service) RegisterUser(login, password, accountSID, authToken string) (*User, error) {
+	if login == "" || password == "" || accountSID == "" || authToken == "" {
+		return nil, ErrInvalidCredentials
+	}
+
 	// Check if user already exists
-	_, err := s.repo.GetUserBySMSGatewayLogin(login)
+	_, err := s.repo.GetByLogin(login)
 	if err == nil {
 		return nil, ErrUserAlreadyExists
 	} else if !IsUserNotFound(err) {
@@ -74,7 +73,7 @@ func (s *service) RegisterUser(login, password, accountSID, authToken string) (*
 		CallbackUUID:     callbackUUID,
 	}
 
-	err = s.repo.CreateUser(user)
+	err = s.repo.Create(user)
 	if err != nil {
 		s.logger.Error("Error creating user", zap.Error(err))
 		return nil, err
@@ -84,7 +83,7 @@ func (s *service) RegisterUser(login, password, accountSID, authToken string) (*
 }
 
 func (s *service) AuthenticateUser(login, password string) (*User, error) {
-	user, err := s.repo.GetUserBySMSGatewayLogin(login)
+	user, err := s.repo.GetByLogin(login)
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, ErrInvalidCredentials

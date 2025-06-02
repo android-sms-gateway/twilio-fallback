@@ -25,7 +25,7 @@ func TestAuthFlow(t *testing.T) {
 	validator := validator.New()
 	authService := auth.NewService(logger, "secret", time.Hour)
 	userService := users.NewService(nil, nil, logger)
-	proxyService := proxy.NewService("localhost")
+	proxyService := proxy.NewService(proxy.Config{BaseURL: "localhost"})
 	authHandler := handlers.NewAuthHandler(logger, validator, authService, userService)
 	dashboardHandler := handlers.NewDashboardHandler(proxyService, logger, validator)
 
