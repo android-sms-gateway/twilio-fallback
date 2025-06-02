@@ -8,42 +8,9 @@ services:
       - HTTP__ADDRESS=:3000
       - HTTP__PROXY_HEADER=X-Forwarded-For
       - HTTP__PROXIES=127.0.0.1
-      - REDIS__URL=redis://redis:6379/0
-      - DATABASE__DSN=mariadb://twilio-fallback:twilio-fallback@tcp(mariadb:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local
+      - TWILIO__ACCOUNT_SID=${TWILIO__ACCOUNT_SID}
+      - TWILIO__AUTH_TOKEN=${TWILIO__AUTH_TOKEN}
+      - SMSGATE__USERNAME=${SMSGATE__USERNAME}
+      - SMSGATE__PASSWORD=${SMSGATE__PASSWORD}
     ports:
       - 3000:3000
-    depends_on:
-      redis:
-        condition: service_healthy
-      mariadb:
-        condition: service_healthy
-
-  redis:
-    image: redis:7
-    volumes:
-      - redis-data:/data
-    healthcheck:
-      test: ["CMD-SHELL", "redis-cli ping | grep PONG"]
-      interval: 1s
-      timeout: 3s
-      retries: 5
-
-  mariadb:
-    image: mariadb:lts
-    volumes:
-      - mariadb_data:/var/lib/mysql
-    healthcheck:
-      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
-      start_period: 10s
-      interval: 10s
-      timeout: 5s
-      retries: 3
-    environment:
-      MARIADB_ROOT_PASSWORD: root
-      MARIADB_DATABASE: twilio-fallback
-      MARIADB_USER: twilio-fallback
-      MARIADB_PASSWORD: twilio-fallback
-
-volumes:
-  redis-data:
-  mariadb_data:
