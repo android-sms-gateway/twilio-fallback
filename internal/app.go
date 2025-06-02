@@ -31,8 +31,6 @@ func Run() {
 		health.Module,
 
 		server.Module,
-		// api.Module,
-		// csr.Module,
 	).
 		Run()
 }

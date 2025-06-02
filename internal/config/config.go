@@ -10,29 +10,13 @@ type HttpConfig struct {
 	Proxies     []string `envconfig:"HTTP__PROXIES"`
 }
 
-type RedisConfig struct {
-	URL string `envconfig:"REDIS__URL"`
-}
-
-type DatabaseConfig struct {
-	DSN string `envconfig:"DATABASE__DSN"`
-}
-
 type Config struct {
-	Http     HttpConfig
-	Redis    RedisConfig
-	Database DatabaseConfig
+	Http HttpConfig
 }
 
 var instance = Config{
 	Http: HttpConfig{
 		Address: "127.0.0.1:3000",
-	},
-	Redis: RedisConfig{
-		URL: "redis://localhost:6379",
-	},
-	Database: DatabaseConfig{
-		DSN: "mysql://root@tcp(localhost:3306)/twilio-fallback?charset=utf8mb4&parseTime=True&loc=Local",
 	},
 }
 
