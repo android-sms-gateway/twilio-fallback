@@ -6,6 +6,7 @@ import (
 	"github.com/android-sms-gateway/core/validator"
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
 	"github.com/android-sms-gateway/twilio-fallback/internal/health"
+	"github.com/android-sms-gateway/twilio-fallback/internal/proxy"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
 	"github.com/android-sms-gateway/twilio-fallback/internal/smsgate"
 	"github.com/android-sms-gateway/twilio-fallback/internal/twilio"
@@ -29,6 +30,7 @@ func Run() {
 		config.Module,
 		twilio.Module,
 		smsgate.Module,
+		proxy.Module,
 
 		health.Module,
 
