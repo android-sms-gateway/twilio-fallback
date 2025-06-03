@@ -14,8 +14,9 @@ type HttpConfig struct {
 }
 
 type TwilioConfig struct {
-	AccountSID string `envconfig:"TWILIO__ACCOUNT_SID" required:"true"`
-	AuthToken  string `envconfig:"TWILIO__AUTH_TOKEN" required:"true"`
+	AccountSID  string `envconfig:"TWILIO__ACCOUNT_SID" required:"true"`
+	AuthToken   string `envconfig:"TWILIO__AUTH_TOKEN" required:"true"`
+	CallbackURL string `envconfig:"TWILIO__CALLBACK_URL"`
 }
 
 type SMSGateConfig struct {

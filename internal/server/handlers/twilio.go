@@ -18,21 +18,21 @@ type TwilioHandler struct {
 	twilioService twilio.Service
 }
 
-func NewTwilioHandler(proxy proxy.Service, twilio twilio.Service, validator *validator.Validate, logger *zap.Logger) *TwilioHandler {
+func NewTwilioHandler(proxy proxy.Service, twilio twilio.Service, validator *validator.Validate, logger *zap.Logger) (*TwilioHandler, error) {
 	if proxy == nil {
-		panic("proxy service is nil")
+		return nil, fmt.Errorf("proxy service is nil")
 	}
 
 	if twilio == nil {
-		panic("twilio service is nil")
+		return nil, fmt.Errorf("twilio service is nil")
 	}
 
 	if validator == nil {
-		panic("validator is nil")
+		return nil, fmt.Errorf("validator is nil")
 	}
 
 	if logger == nil {
-		panic("logger is nil")
+		return nil, fmt.Errorf("logger is nil")
 	}
 
 	return &TwilioHandler{
@@ -42,16 +42,20 @@ func NewTwilioHandler(proxy proxy.Service, twilio twilio.Service, validator *val
 		},
 		proxyService:  proxy,
 		twilioService: twilio,
-	}
+	}, nil
 }
 
 func (h *TwilioHandler) callback(c *fiber.Ctx) error {
-	// Validate Twilio signature
-	url := fmt.Sprintf("https://%s%s", c.Hostname(), c.OriginalURL())
-	params := map[string]string{}
-	if err := c.BodyParser(&params); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Failed to parse request body: %s", err))
+	scheme := "https"
+	if c.Protocol() == "http" {
+		scheme = "http"
 	}
+	url := fmt.Sprintf("%s://%s%s", scheme, c.Hostname(), c.OriginalURL())
+
+	params := map[string]string{}
+	c.Request().PostArgs().VisitAll(func(key, value []byte) {
+		params[string(key)] = string(value)
+	})
 
 	signature := c.Get("X-Twilio-Signature")
 	if signature == "" {
@@ -59,12 +63,21 @@ func (h *TwilioHandler) callback(c *fiber.Ctx) error {
 	}
 
 	if err := h.twilioService.ValidateSignature(url, params, signature); err != nil {
-		return fiber.NewError(fiber.StatusBadRequest, fmt.Sprintf("Twilio signature validation failed: %s", err))
+		h.Logger.Error("Invalid signature", zap.Error(err))
+		return fiber.NewError(fiber.StatusBadRequest, "Invalid signature")
 	}
 
-	// Parse form data
-	messageSid := c.FormValue("MessageSid")
-	messageStatus := c.FormValue("MessageStatus")
+	// Parse form data and validate required fields
+	messageSid := params["MessageSid"]
+	messageStatus := params["MessageStatus"]
+
+	// Validate required fields
+	if messageSid == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "MessageSid is required")
+	}
+	if messageStatus == "" {
+		return fiber.NewError(fiber.StatusBadRequest, "MessageStatus is required")
+	}
 
 	// Delegate processing to proxy service
 

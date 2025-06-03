@@ -17,12 +17,18 @@ type Service interface {
 }
 
 type service struct {
+	accountSID  string
+	callbackURL string
+
 	client    *twilio.RestClient
 	validator client.RequestValidator
 }
 
 func NewService(config Config) Service {
 	return &service{
+		accountSID:  config.AccountSID,
+		callbackURL: config.CallbackURL,
+
 		client: twilio.NewRestClientWithParams(twilio.ClientParams{
 			Username: config.AccountSID,
 			Password: config.AuthToken,
@@ -50,6 +56,20 @@ func (s *service) GetMessage(ctx context.Context, sid string) (common.Message, e
 }
 
 func (s *service) ValidateSignature(url string, params map[string]string, signature string) error {
+	// Validate AccountSID
+	accountSid, ok := params["AccountSid"]
+	if !ok {
+		return errors.New("missing AccountSid parameter")
+	}
+	if accountSid != s.accountSID {
+		return errors.New("AccountSid mismatch")
+	}
+
+	if s.callbackURL != "" {
+		url = s.callbackURL
+	}
+
+	// Validate signature
 	if !s.validator.Validate(url, params, signature) {
 		return errors.New("twilio signature validation failed")
 	}

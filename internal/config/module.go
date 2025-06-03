@@ -19,8 +19,9 @@ var Module = fx.Module(
 	}),
 	fx.Provide(func(c Config) twilio.Config {
 		return twilio.Config{
-			AccountSID: c.Twilio.AccountSID,
-			AuthToken:  c.Twilio.AuthToken,
+			AccountSID:  c.Twilio.AccountSID,
+			AuthToken:   c.Twilio.AuthToken,
+			CallbackURL: c.Twilio.CallbackURL,
 		}
 	}),
 	fx.Provide(func(c Config) smsgate.Config {

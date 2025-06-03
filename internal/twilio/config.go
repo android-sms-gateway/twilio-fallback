@@ -1,6 +1,7 @@
 package twilio
 
 type Config struct {
-	AccountSID string
-	AuthToken  string
+	AccountSID  string
+	AuthToken   string
+	CallbackURL string
 }
