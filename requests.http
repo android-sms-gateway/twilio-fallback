@@ -5,3 +5,27 @@ GET {{baseUrl}}/ HTTP/1.1
 
 ###
 GET {{baseUrl}}/health HTTP/1.1
+
+###
+POST {{baseUrl}}/api/twilio HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+X-Twilio-Signature: WPHjNdSFmnwue4NGp0YWUDzijss=
+
+AccountSid=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+&From=%2B15017250604
+&MessageSid=SM1342fe1b2c904d1ab04f0fc7a58abca9
+&MessageStatus=sent
+&SmsSid=SM1342fe1b2c904d1ab04f0fc7a58abca9
+&SmsStatus=sent
+
+###
+POST {{baseUrl}}/api/twilio HTTP/1.1
+Content-Type: application/x-www-form-urlencoded
+X-Twilio-Signature: X1qgvVzYoqN7DinlNO1M7+X+qjU=
+
+AccountSid=ACxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
+&From=%2B15017250604
+&MessageSid=SM1342fe1b2c904d1ab04f0fc7a58abca9
+&MessageStatus=failed
+&SmsSid=SM1342fe1b2c904d1ab04f0fc7a58abca9
+&SmsStatus=failed
