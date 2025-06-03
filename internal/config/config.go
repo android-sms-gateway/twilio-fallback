@@ -1,6 +1,8 @@
 package config
 
 import (
+	"time"
+
 	"github.com/android-sms-gateway/client-go/smsgateway"
 	"github.com/android-sms-gateway/core/config"
 )
@@ -20,6 +22,8 @@ type SMSGateConfig struct {
 	BaseURL  string `envconfig:"SMSGATE__BASE_URL"`
 	Username string `envconfig:"SMSGATE__USERNAME" required:"true"`
 	Password string `envconfig:"SMSGATE__PASSWORD" required:"true"`
+
+	Timeout time.Duration `envconfig:"SMSGATE__TIMEOUT"`
 }
 
 type Config struct {
@@ -35,6 +39,7 @@ var instance = Config{
 	Twilio: TwilioConfig{},
 	SMSGate: SMSGateConfig{
 		BaseURL: smsgateway.BASE_URL,
+		Timeout: 1 * time.Second,
 	},
 }
 
