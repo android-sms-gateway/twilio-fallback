@@ -7,6 +7,7 @@ import (
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
 	"github.com/android-sms-gateway/twilio-fallback/internal/health"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
+	"github.com/android-sms-gateway/twilio-fallback/internal/smsgate"
 	"github.com/android-sms-gateway/twilio-fallback/internal/twilio"
 	"go.uber.org/fx"
 	"go.uber.org/fx/fxevent"
@@ -27,6 +28,7 @@ func Run() {
 
 		config.Module,
 		twilio.Module,
+		smsgate.Module,
 
 		health.Module,
 

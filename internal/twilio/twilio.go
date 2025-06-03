@@ -41,6 +41,7 @@ func (s *service) GetMessage(ctx context.Context, sid string) (common.Message, e
 	}
 
 	return common.Message{
+		ID:   *resp.Sid,
 		To:   *resp.To,
 		Body: *resp.Body,
 	}, nil
