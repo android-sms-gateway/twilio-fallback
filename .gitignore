@@ -127,4 +127,6 @@ $RECYCLE.BIN/
 
 go.work*
 coverage.html
+api/
+dist/
 tmp/
