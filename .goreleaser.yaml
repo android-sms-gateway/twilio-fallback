@@ -1,0 +1,95 @@
+version: 2
+
+project_name: twilio-fallback
+
+before:
+  hooks:
+    # You may remove this if you don't use go modules.
+    - go mod tidy
+    # you may remove this if you don't need go generate
+    - go generate ./...
+
+builds:
+  - env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - windows
+      - darwin
+    ldflags:
+      - -s
+      - -w
+      - -X github.com/android-sms-gateway/twilio-fallback/internal/version.AppVersion={{ .Version }}
+      - -X github.com/android-sms-gateway/twilio-fallback/internal/version.AppRelease={{ .Env.APP_RELEASE }}
+
+archives:
+  - formats: ["tar.gz"]
+    # this name template makes the OS and Arch compatible with the results of `uname`.
+    name_template: >-
+      {{ .ProjectName }}_
+      {{- title .Os }}_
+      {{- if eq .Arch "amd64" }}x86_64
+      {{- else if eq .Arch "386" }}i386
+      {{- else }}{{ .Arch }}{{ end }}
+      {{- if .Arm }}v{{ .Arm }}{{ end }}
+    # use zip for windows archives
+    format_overrides:
+      - goos: windows
+        formats: ["zip"]
+
+dockers:
+  - image_templates:
+      - ghcr.io/android-sms-gateway/twilio-fallback:{{ .Tag }}-amd64
+      - ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}-amd64
+      - ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}.{{ .Minor }}-amd64
+      - ghcr.io/android-sms-gateway/twilio-fallback:latest-amd64
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--pull"
+      - "--platform=linux/amd64"
+    skip_push: false
+    use: buildx
+  - image_templates:
+      - ghcr.io/android-sms-gateway/twilio-fallback:{{ .Tag }}-arm64
+      - ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}-arm64
+      - ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}.{{ .Minor }}-arm64
+      - ghcr.io/android-sms-gateway/twilio-fallback:latest-arm64
+    dockerfile: Dockerfile.goreleaser
+    build_flag_templates:
+      - "--label=org.opencontainers.image.created={{ .Date }}"
+      - "--label=org.opencontainers.image.title={{ .ProjectName }}"
+      - "--label=org.opencontainers.image.revision={{ .FullCommit }}"
+      - "--label=org.opencontainers.image.version={{ .Version }}"
+      - "--pull"
+      - "--platform=linux/arm64"
+    skip_push: false
+    use: buildx
+
+docker_manifests:
+  - name_template: "ghcr.io/android-sms-gateway/twilio-fallback:{{ .Tag }}"
+    image_templates:
+      - "ghcr.io/android-sms-gateway/twilio-fallback:{{ .Tag }}-amd64"
+      - "ghcr.io/android-sms-gateway/twilio-fallback:{{ .Tag }}-arm64"
+  - name_template: "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}"
+    image_templates:
+      - "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}-amd64"
+      - "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}-arm64"
+  - name_template: "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}.{{ .Minor }}"
+    image_templates:
+      - "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}.{{ .Minor }}-amd64"
+      - "ghcr.io/android-sms-gateway/twilio-fallback:v{{ .Major }}.{{ .Minor }}-arm64"
+  - name_template: "ghcr.io/android-sms-gateway/twilio-fallback:latest"
+    image_templates:
+      - "ghcr.io/android-sms-gateway/twilio-fallback:latest-amd64"
+      - "ghcr.io/android-sms-gateway/twilio-fallback:latest-arm64"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
