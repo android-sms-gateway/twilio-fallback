@@ -45,6 +45,19 @@ func NewTwilioHandler(proxy proxy.Service, twilio twilio.Service, validator *val
 	}, nil
 }
 
+//	@Summary		Handle Twilio message status callback
+//	@Description	Processes Twilio message status updates with signature validation
+//	@Tags			Twilio
+//	@Accept			x-www-form-urlencoded
+//	@Param			MessageSid			formData	string	true	"Twilio message SID"
+//	@Param			MessageStatus		formData	string	true	"Message status (e.g. delivered, failed)"
+//	@Param			X-Twilio-Signature	header		string	true	"Twilio request signature"
+//	@Success		200 {string}	string	"OK"
+//	@Failure		400	{string}	string	"Bad request"
+//	@Failure		500	{string}	string	"Internal server error"
+//	@Router			/api/twilio [post]
+//
+// Handle Twilio status callbacks
 func (h *TwilioHandler) callback(c *fiber.Ctx) error {
 	scheme := "https"
 	if c.Protocol() == "http" {
@@ -91,6 +104,7 @@ func (h *TwilioHandler) callback(c *fiber.Ctx) error {
 	return c.SendStatus(fiber.StatusOK)
 }
 
+// Register sets up the Twilio callback route
 func (h *TwilioHandler) Register(router fiber.Router) {
 	router.Post("", h.callback)
 }
