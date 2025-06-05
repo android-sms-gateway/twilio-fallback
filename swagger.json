@@ -4,8 +4,8 @@
     ],
     "swagger": "2.0",
     "info": {
-        "description": "Provides a fallback for Twilio SMS messages via SMS Gate",
-        "title": "SMS Gate Twilio Fallback API",
+        "description": "Provides a fallback for Twilio SMS messages via SMSGate",
+        "title": "SMSGate Twilio Fallback API",
         "contact": {
             "name": "SMSGate Support",
             "email": "support@sms-gate.app"
@@ -16,7 +16,7 @@
         },
         "version": "{{VERSION}}"
     },
-    "host": "twilio.sms-gate.app",
+    "host": "[YOUR_SERVICE_URL]",
     "paths": {
         "/health": {
             "get": {
