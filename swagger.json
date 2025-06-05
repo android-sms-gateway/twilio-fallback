@@ -18,6 +18,61 @@
     },
     "host": "[YOUR_SERVICE_URL]",
     "paths": {
+        "/api/twilio": {
+            "post": {
+                "description": "Processes Twilio message status updates with signature validation",
+                "consumes": [
+                    "application/x-www-form-urlencoded"
+                ],
+                "tags": [
+                    "Twilio"
+                ],
+                "summary": "Handle Twilio message status callback",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Twilio message SID",
+                        "name": "MessageSid",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Message status (e.g. delivered, failed)",
+                        "name": "MessageStatus",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Twilio request signature",
+                        "name": "X-Twilio-Signature",
+                        "in": "header",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad request",
+                        "schema": {
+                            "type": "string"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal server error",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/health": {
             "get": {
                 "description": "Checks if service is healthy",
