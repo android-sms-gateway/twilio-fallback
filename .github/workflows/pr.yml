@@ -12,6 +12,7 @@ permissions:
 jobs:
   goreleaser:
     runs-on: ubuntu-latest
+    if: github.actor != 'dependabot[bot]'
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,15 +31,12 @@ jobs:
           echo "APP_RELEASE=$(( ($(date -u +%s) - $(date -u -d "${START_DATE}" +%s)) / 86400 ))" >> "${GITHUB_ENV}"
 
       - name: Login to GitHub Container registry
-        if: github.actor != 'dependabot[bot]'
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
       - name: Run GoReleaser
         uses: goreleaser/goreleaser-action@v6
         with:
@@ -69,7 +67,6 @@ jobs:
           destination_dir: ${{ github.repository }}/${{ github.event.pull_request.head.sha }}
 
       - name: Push images
-        if: github.actor != 'dependabot[bot]'
         run: |
           docker tag ghcr.io/${{ github.repository }}:latest-amd64 ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}-amd64
           docker push ghcr.io/${{ github.repository }}:pr-${{ github.event.pull_request.number }}-amd64
