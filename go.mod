@@ -8,7 +8,7 @@ require (
 	github.com/capcom6/go-helpers v0.2.0
 	github.com/cenkalti/backoff/v5 v5.0.2
 	github.com/go-playground/validator/v10 v10.26.0
-	github.com/gofiber/fiber/v2 v2.52.8
+	github.com/gofiber/fiber/v2 v2.52.9
 	github.com/twilio/twilio-go v1.26.2
 	go.uber.org/fx v1.24.0
 	go.uber.org/zap v1.27.0
