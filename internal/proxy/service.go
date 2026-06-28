@@ -38,7 +38,7 @@ func (s *service) Start() {
 	s.jobs.Start()
 }
 
-func (s *service) ProcessCallback(ctx context.Context, messageSid, messageStatus string) error {
+func (s *service) ProcessCallback(_ context.Context, messageSid, messageStatus string) error {
 	// Filter non-failure statuses
 	if !isFailedStatus(messageStatus) {
 		return nil

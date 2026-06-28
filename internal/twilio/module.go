@@ -1,14 +1,15 @@
 package twilio
 
 import (
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
-var Module = fx.Module(
-	"twilio",
-	fx.Decorate(func(log *zap.Logger) *zap.Logger {
-		return log.Named("twilio")
-	}),
-	fx.Provide(NewService),
-)
+func Module() fx.Option {
+	return fx.Module(
+		"twilio",
+		logger.WithNamedLogger("twilio"),
+
+		fx.Provide(NewService),
+	)
+}
