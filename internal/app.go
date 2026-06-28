@@ -1,40 +1,49 @@
 package internal
 
 import (
-	"github.com/android-sms-gateway/core/http"
-	"github.com/android-sms-gateway/core/logger"
-	"github.com/android-sms-gateway/core/validator"
 	"github.com/android-sms-gateway/twilio-fallback/internal/config"
-	"github.com/android-sms-gateway/twilio-fallback/internal/health"
 	"github.com/android-sms-gateway/twilio-fallback/internal/proxy"
 	"github.com/android-sms-gateway/twilio-fallback/internal/server"
 	"github.com/android-sms-gateway/twilio-fallback/internal/smsgate"
 	"github.com/android-sms-gateway/twilio-fallback/internal/twilio"
+	"github.com/go-core-fx/fiberfx"
+	"github.com/go-core-fx/healthfx"
+	"github.com/go-core-fx/logger"
+	"github.com/go-core-fx/validatorfx"
 	"go.uber.org/fx"
-	"go.uber.org/fx/fxevent"
-	"go.uber.org/zap"
-	"go.uber.org/zap/zapcore"
 )
 
-func Run() {
+func Run(version healthfx.Version) {
 	fx.New(
-		logger.Module,
-		fx.WithLogger(func(logger *zap.Logger) fxevent.Logger {
-			logOption := fxevent.ZapLogger{Logger: logger}
-			logOption.UseLogLevel(zapcore.DebugLevel)
-			return &logOption
-		}),
-		http.Module,
-		validator.Module,
-
-		config.Module,
-		twilio.Module,
-		smsgate.Module,
-		proxy.Module,
-
-		health.Module,
-
-		server.Module,
+		// CORE MODULES
+		logger.Module(),
+		logger.WithFxDefaultLogger(),
+		// badgerfx.Module(),
+		// bunfx.Module(),
+		// cachefx.Module(),
+		fiberfx.Module(),
+		// gocqlfx.Module(),
+		// gocqlxfx.Module(),
+		// sqlfx.Module(),
+		// goosefx.Module(),
+		// gormfx.Module(),
+		healthfx.Module(),
+		// openrouterfx.Module(),
+		// redisfx.Module(),
+		// sqlxfx.Module(),
+		// telegofx.Module(true),
+		validatorfx.Module(),
+		// watermillfx.Module(),
+		//
+		// APP MODULES
+		config.Module(),
+		twilio.Module(),
+		smsgate.Module(),
+		server.Module(),
+		//
+		// BUSINESS MODULES
+		fx.Supply(version),
+		proxy.Module(),
 	).
 		Run()
 }

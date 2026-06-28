@@ -2,7 +2,6 @@ package twilio
 
 import (
 	"context"
-	"errors"
 	"fmt"
 
 	"github.com/android-sms-gateway/twilio-fallback/internal/common"
@@ -30,22 +29,25 @@ func NewService(config Config) Service {
 		callbackURL: config.CallbackURL,
 
 		client: twilio.NewRestClientWithParams(twilio.ClientParams{
-			Username: config.AccountSID,
-			Password: config.AuthToken,
+			Username:                 config.AccountSID,
+			Password:                 config.AuthToken,
+			AccountSid:               "",
+			Client:                   nil,
+			ClientCredentialProvider: nil,
 		}),
 		validator: client.NewRequestValidator(config.AuthToken),
 	}
 }
 
-func (s *service) GetMessage(ctx context.Context, sid string) (common.Message, error) {
-	params := &openapi.FetchMessageParams{}
-	resp, err := s.client.Api.FetchMessage(sid, params)
+func (s *service) GetMessage(_ context.Context, sid string) (common.Message, error) {
+	var params openapi.FetchMessageParams
+	resp, err := s.client.Api.FetchMessage(sid, &params)
 	if err != nil {
 		return common.Message{}, fmt.Errorf("twilio fetch message: %w", err)
 	}
 
 	if resp.To == nil || resp.Body == nil {
-		return common.Message{}, errors.New("twilio response missing required fields")
+		return common.Message{}, ErrMissingRequiredFields
 	}
 
 	return common.Message{
@@ -59,10 +61,10 @@ func (s *service) ValidateSignature(url string, params map[string]string, signat
 	// Validate AccountSID
 	accountSid, ok := params["AccountSid"]
 	if !ok {
-		return errors.New("missing AccountSid parameter")
+		return ErrMissingAccountSid
 	}
 	if accountSid != s.accountSID {
-		return errors.New("AccountSid mismatch")
+		return ErrAccountSidMismatch
 	}
 
 	if s.callbackURL != "" {
@@ -71,7 +73,7 @@ func (s *service) ValidateSignature(url string, params map[string]string, signat
 
 	// Validate signature
 	if !s.validator.Validate(url, params, signature) {
-		return errors.New("twilio signature validation failed")
+		return ErrSignatureValidationFailed
 	}
 
 	return nil

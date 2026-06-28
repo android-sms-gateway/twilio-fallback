@@ -26,7 +26,7 @@ type service struct {
 
 func NewService(config Config, logger *zap.Logger) (Service, error) {
 	if logger == nil {
-		return nil, fmt.Errorf("logger is nil")
+		return nil, ErrLoggerNil
 	}
 
 	return &service{
@@ -36,6 +36,9 @@ func NewService(config Config, logger *zap.Logger) (Service, error) {
 			BaseURL:  config.BaseURL,
 			User:     config.Username,
 			Password: config.Password,
+
+			Client: nil,
+			Token:  "",
 		}),
 
 		logger: logger,
@@ -44,16 +47,29 @@ func NewService(config Config, logger *zap.Logger) (Service, error) {
 
 func (c *service) Send(ctx context.Context, msg common.Message) (string, error) {
 	sms := smsgateway.Message{
-		ID:           msg.ID,
-		Message:      msg.Body,
+		ID: msg.ID,
+		TextMessage: &smsgateway.TextMessage{
+			Text: msg.Body,
+		},
 		PhoneNumbers: []string{msg.To},
+		Priority:     smsgateway.PriorityDefault,
+
+		Message:            "",
+		DataMessage:        nil,
+		DeviceID:           "",
+		IsEncrypted:        false,
+		SimNumber:          nil,
+		WithDeliveryReport: nil,
+		TTL:                nil,
+		ValidUntil:         nil,
+		ScheduleAt:         nil,
 	}
 
 	operation := func() (string, error) {
-		ctx, cancel := context.WithTimeout(ctx, c.timeout)
+		opCtx, cancel := context.WithTimeout(ctx, c.timeout)
 		defer cancel()
 
-		state, err := c.client.Send(ctx, sms)
+		state, err := c.client.Send(opCtx, sms)
 		if rest.IsConflict(err) {
 			c.logger.Info("Message already enqueued", zap.String("id", msg.ID))
 			return msg.ID, nil

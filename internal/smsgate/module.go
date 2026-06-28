@@ -1,14 +1,15 @@
 package smsgate
 
 import (
+	"github.com/go-core-fx/logger"
 	"go.uber.org/fx"
-	"go.uber.org/zap"
 )
 
-var Module = fx.Module(
-	"smsgate",
-	fx.Decorate(func(log *zap.Logger) *zap.Logger {
-		return log.Named("smsgate")
-	}),
-	fx.Provide(NewService),
-)
+func Module() fx.Option {
+	return fx.Module(
+		"smsgate",
+		logger.WithNamedLogger("smsgate"),
+
+		fx.Provide(NewService),
+	)
+}

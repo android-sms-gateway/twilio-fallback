@@ -1,49 +1,85 @@
 package config
 
 import (
+	"fmt"
+	"os"
 	"time"
 
 	"github.com/android-sms-gateway/client-go/smsgateway"
-	"github.com/android-sms-gateway/core/config"
+	"github.com/go-core-fx/config"
 )
 
-type HttpConfig struct {
-	Address     string   `envconfig:"HTTP__ADDRESS"`
-	ProxyHeader string   `envconfig:"HTTP__PROXY_HEADER"`
-	Proxies     []string `envconfig:"HTTP__PROXIES"`
+type httpConfig struct {
+	Address     string   `koanf:"address"`
+	ProxyHeader string   `koanf:"proxy_header"`
+	Proxies     []string `koanf:"proxies"`
+
+	OpenAPI openAPIConfig `koanf:"openapi"`
 }
 
-type TwilioConfig struct {
-	AccountSID  string `envconfig:"TWILIO__ACCOUNT_SID" required:"true"`
-	AuthToken   string `envconfig:"TWILIO__AUTH_TOKEN" required:"true"`
-	CallbackURL string `envconfig:"TWILIO__CALLBACK_URL"`
+type openAPIConfig struct {
+	Enabled    bool   `koanf:"enabled"`
+	PublicHost string `koanf:"public_host"`
+	PublicPath string `koanf:"public_path"`
 }
 
-type SMSGateConfig struct {
-	BaseURL  string `envconfig:"SMSGATE__BASE_URL"`
-	Username string `envconfig:"SMSGATE__USERNAME" required:"true"`
-	Password string `envconfig:"SMSGATE__PASSWORD" required:"true"`
+type twilioConfig struct {
+	AccountSID  string `koanf:"account_sid"  required:"true"`
+	AuthToken   string `koanf:"auth_token"   required:"true"`
+	CallbackURL string `koanf:"callback_url"`
+}
 
-	Timeout time.Duration `envconfig:"SMSGATE__TIMEOUT"`
+type smsGateConfig struct {
+	BaseURL  string `koanf:"base_url"`
+	Username string `koanf:"username"`
+	Password string `koanf:"password"`
+
+	Timeout time.Duration `koanf:"timeout"`
 }
 
 type Config struct {
-	Http    HttpConfig
-	Twilio  TwilioConfig
-	SMSGate SMSGateConfig
+	HTTP    httpConfig    `koanf:"http"`
+	Twilio  twilioConfig  `koanf:"twilio"`
+	SMSGate smsGateConfig `koanf:"smsgate"`
 }
 
-var instance = Config{
-	Http: HttpConfig{
-		Address: "127.0.0.1:3000",
-	},
-	Twilio: TwilioConfig{},
-	SMSGate: SMSGateConfig{
-		BaseURL: smsgateway.BASE_URL,
-		Timeout: 1 * time.Second,
-	},
+func Default() Config {
+	return Config{
+		HTTP: httpConfig{
+			Address:     "127.0.0.1:3000",
+			ProxyHeader: "X-Forwarded-For",
+			Proxies:     []string{},
+			OpenAPI: openAPIConfig{
+				Enabled:    true,
+				PublicHost: "",
+				PublicPath: "",
+			},
+		},
+		Twilio: twilioConfig{
+			AccountSID:  "",
+			AuthToken:   "",
+			CallbackURL: "",
+		},
+		SMSGate: smsGateConfig{
+			BaseURL:  smsgateway.BaseURL,
+			Timeout:  time.Second,
+			Username: "",
+			Password: "",
+		},
+	}
 }
 
 func New() (Config, error) {
-	return instance, config.Load(&instance)
+	cfg := Default()
+
+	options := []config.Option{}
+	if yamlPath := os.Getenv("CONFIG_PATH"); yamlPath != "" {
+		options = append(options, config.WithLocalYAML(yamlPath))
+	}
+
+	if err := config.Load(&cfg, options...); err != nil {
+		return Config{}, fmt.Errorf("failed to load config: %w", err)
+	}
+
+	return cfg, nil
 }

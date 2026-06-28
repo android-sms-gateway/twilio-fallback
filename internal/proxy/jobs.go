@@ -2,7 +2,6 @@ package proxy
 
 import (
 	"context"
-	"fmt"
 	"runtime"
 	"sync"
 	"time"
@@ -11,8 +10,9 @@ import (
 )
 
 const (
-	MaxQueueSize = 100
-	JobTimeout   = 15 * time.Second
+	MaxQueueSize  = 100
+	JobTimeout    = 15 * time.Second
+	WorkersPerCPU = 2
 )
 
 type job struct {
@@ -35,7 +35,8 @@ func newJobsService(logger *zap.Logger) *jobsService {
 
 	return &jobsService{
 		jobQueue: make(chan job, MaxQueueSize),
-		workers:  runtime.NumCPU() * 2,
+		workers:  runtime.NumCPU() * WorkersPerCPU,
+		wg:       sync.WaitGroup{},
 		ctx:      ctx,
 		cancel:   cancel,
 
@@ -44,7 +45,7 @@ func newJobsService(logger *zap.Logger) *jobsService {
 }
 
 func (s *jobsService) Start() {
-	for i := 0; i < s.workers; i++ {
+	for i := range s.workers {
 		s.wg.Add(1)
 		go s.worker(i)
 	}
@@ -53,14 +54,14 @@ func (s *jobsService) Start() {
 func (s *jobsService) Enqueue(id string, operation func(context.Context) error) error {
 	select {
 	case <-s.ctx.Done():
-		return fmt.Errorf("jobs service is closed")
+		return ErrJobsServiceClosed
 	case s.jobQueue <- job{
 		id:        id,
 		operation: operation,
 	}:
 		return nil
 	default:
-		return fmt.Errorf("job queue full")
+		return ErrJobQueueFull
 	}
 }
 
@@ -75,8 +76,8 @@ func (s *jobsService) worker(id int) {
 
 	for {
 		select {
-		case job := <-s.jobQueue:
-			s.processJob(job, id)
+		case j := <-s.jobQueue:
+			s.processJob(j, id)
 		case <-s.ctx.Done():
 			s.logger.Info("Worker stopped", zap.Int("worker", id))
 			return
