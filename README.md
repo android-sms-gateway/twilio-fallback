@@ -1,106 +1,127 @@
-# 🚀 Twilio™ Fallback Service
+# 📱 Twilio Fallback Service
 
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg?style=for-the-badge)](https://opensource.org/licenses/Apache-2.0)
-[![Go Report Card](https://img.shields.io/badge/Go%20Report-A%2B-brightgreen.svg?style=for-the-badge)](https://goreportcard.com/report/github.com/android-sms-gateway/twilio-fallback)
-[![GitHub Actions Status](https://img.shields.io/badge/CI-passing-brightgreen.svg?style=for-the-badge)](https://github.com/android-sms-gateway/twilio-fallback/actions)
+[![Contributors][contributors-shield]][contributors-url]
+[![Forks][forks-shield]][forks-url]
+[![Stars][stars-shield]][stars-url]
+[![Issues][issues-shield]][issues-url]
+[![License][license-shield]][license-url]
 
-A service that provides a fallback mechanism for Twilio SMS messages using SMSGate.
+A bridge that intercepts Twilio message status callbacks and resends failed messages via the SMSGate API, providing a fallback channel without changing existing Twilio-based software. See [Twilio Fallback](https://docs.sms-gate.app/services/twilio-fallback/) for the full guide.
 
-## 📖 Overview
+## 📖 About
 
-Many companies using Twilio's SMS API encounter challenges maintaining optimal deliverability rates, especially concerning evolving industry requirements. Existing software built for Twilio often lacks the flexibility to integrate with alternative SMS gateways without significant code modifications.
+The Twilio Fallback Service listens for Twilio outbound message status callbacks, validates the `X-Twilio-Signature` header, and for failed or blocked messages automatically resends them through SMSGate. Applications keep using Twilio as their primary channel; SMSGate becomes the delivery fallback.
 
-This Twilio Fallback Service provides a solution by acting as a bridge between Twilio and SMSGate. It intercepts Twilio failure webhooks, extracts the necessary message details, and reroutes the messages via SMSGate, enabling seamless fallback without requiring any changes to the existing Twilio-based software.
+## 📚 Table of Contents
 
-## 📝 Description
+- [📖 About](#-about)
+- [📚 Table of Contents](#-table-of-contents)
+- [⭐ Features](#-features)
+- [📦 Prerequisites](#-prerequisites)
+- [🚀 Getting Started](#-getting-started)
+- [⚙️ Configuration](#️-configuration)
+- [📦 Deployment](#-deployment)
+- [🔌 API Overview](#-api-overview)
+- [📚 Documentation](#-documentation)
+- [🤝 Contributing](#-contributing)
+- [📄 License](#-license)
 
-The Twilio Fallback Service handles Twilio message failure callbacks and resends failed messages via the SMSGate API. This service ensures that critical messages are delivered even if the primary Twilio channel fails.
+## ⭐ Features
 
-## 📖 Table of Contents
+- Twilio message status callback webhook at `/api/twilio`
+- Twilio request signature validation
+- Automatic resend of failed messages via the SMSGate API
+- Health and Prometheus metrics endpoints
 
-- [🚀 Twilio™ Fallback Service](#-twilio-fallback-service)
-  - [📖 Overview](#-overview)
-  - [📝 Description](#-description)
-  - [📖 Table of Contents](#-table-of-contents)
-  - [🚀 Getting Started](#-getting-started)
-    - [⚙️ Prerequisites](#️-prerequisites)
-    - [📦 Installation](#-installation)
-      - [1. Pre-built Binaries](#1-pre-built-binaries)
-      - [2. Docker Image](#2-docker-image)
-  - [⚙️ Configuration](#️-configuration)
-  - [🚀 Deployment](#-deployment)
-    - [Local Deployment](#local-deployment)
-    - [Docker Deployment](#docker-deployment)
-  - [📄 License](#-license)
-  - [⚖️ Legal Notice](#️-legal-notice)
+## 📦 Prerequisites
+
+- Linux server with a public IP address (for Twilio webhooks)
+- A Twilio account with message status callbacks enabled
+- An SMSGate account
+- Domain name and SSL/TLS certificate (recommended for webhook security)
 
 ## 🚀 Getting Started
 
-### ⚙️ Prerequisites
-
-- Linux VPS with a public IP address
-- Docker (if using Docker deployment)
-- Domain name and SSL certificate ([strongly recommended](https://www.twilio.com/docs/usage/webhooks/webhooks-security#httpstls))
-
-### 📦 Installation
-
-Choose one of the following installation methods:
-
-#### 1. Pre-built Binaries
-
-Download the appropriate binary for your system from the [GitHub Releases page](https://github.com/android-sms-gateway/twilio-fallback/releases/latest).
-
-#### 2. Docker Image
-
-Alternatively, you can use the Docker image hosted on `ghcr.io`:
-
-```sh
-docker pull ghcr.io/android-sms-gateway/twilio-fallback:latest
+```bash
+make build
+cp .env.example .env   # fill in Twilio and SMSGate credentials
+./bin/twilio-fallback
 ```
+
+Configure your Twilio account to send message status callbacks to `https://your-host/api/twilio`.
 
 ## ⚙️ Configuration
 
-Create a `.env` file in the root directory of the project. Copy the contents from `.env.example` and fill in the required values.
+Configuration is loaded from environment variables (double-underscore nesting) or an optional YAML file. The YAML file is selected via `CONFIG_PATH`, which must be set in the process environment before startup — a value placed only in `.env` cannot select the YAML file. See [.env.example](.env.example).
 
-To enable the fallback mechanism, configure your Twilio account to send message status callbacks to the service's endpoint: `[YOUR_SERVICE_URL]/api/twilio`. This endpoint will receive webhooks for failed or blocked messages and automatically resend them via SMSGate. For more information on setting up Twilio callbacks, see the [Twilio documentation](https://www.twilio.com/docs/usage/webhooks/messaging-webhooks#outbound-message-status-callback).
+| Variable                | Default                                | Description                                  |
+| ----------------------- | -------------------------------------- | -------------------------------------------- |
+| `HTTP__ADDRESS`         | `127.0.0.1:3000`                       | HTTP listen address                          |
+| `HTTP__PROXY_HEADER`    | `X-Forwarded-For`                      | Trusted proxy header                         |
+| `HTTP__PROXIES`         | *(empty)*                              | Comma-separated trusted proxies              |
+| `TWILIO__ACCOUNT_SID`   | *(required)*                           | Twilio account SID                           |
+| `TWILIO__AUTH_TOKEN`    | *(required)*                           | Twilio auth token                            |
+| `TWILIO__CALLBACK_URL`  | *(empty)*                              | Public callback URL (defaults from Host)     |
+| `SMSGATE__BASE_URL`     | `https://api.sms-gate.app/3rdparty/v1` | SMSGate API base URL                         |
+| `SMSGATE__USERNAME`     | *(required)*                           | SMSGate username                             |
+| `SMSGATE__PASSWORD`     | *(required)*                           | SMSGate password                             |
+| `SMSGATE__TIMEOUT`      | `1s`                                   | SMSGate API timeout                          |
+| `CONFIG_PATH`           | *(empty)*                              | Optional YAML config file path               |
 
-The following environment variables are available to configure the service:
+Full reference: [Twilio Fallback](https://docs.sms-gate.app/services/twilio-fallback/).
 
-| Variable               | Description                                  | Default                                |
-| ---------------------- | -------------------------------------------- | -------------------------------------- |
-| `HTTP__ADDRESS`        | HTTP server address                          | `127.0.0.1:3000`                       |
-| `HTTP__PROXY_HEADER`   | HTTP proxy header                            | *empty*                                |
-| `HTTP__PROXIES`        | Comma separated list of trusted proxies      | *empty*                                |
-| `TWILIO__ACCOUNT_SID`  | Twilio account identifier                    | **required**                           |
-| `TWILIO__AUTH_TOKEN`   | Twilio authentication token                  | **required**                           |
-| `TWILIO__CALLBACK_URL` | Publicly accessible URL for Twilio callbacks | Dynamic based on `Host` header         |
-| `SMSGATE__BASE_URL`    | SMSGate API endpoint                         | `https://api.sms-gate.app/3rdparty/v1` |
-| `SMSGATE__USERNAME`    | SMSGate API username                         | **required**                           |
-| `SMSGATE__PASSWORD`    | SMSGate API password                         | **required**                           |
-| `SMSGATE__TIMEOUT`     | SMSGate API timeout                          | `1s`                                   |
+## 📦 Deployment
 
-## 🚀 Deployment
-
-### Local Deployment
-
-To run the service locally:
-
-```sh
-./twilio-fallback
+```bash
+docker compose up -d
 ```
 
-### Docker Deployment
+Or with Docker directly:
 
-Run the Docker container:
-
-```sh
-docker run -p 3000:3000 --env-file .env ghcr.io/android-sms-gateway/twilio-fallback:latest
+```bash
+docker run -d --name twilio-fallback \
+  -p 3000:3000 \
+  --env-file .env \
+  -e HTTP__ADDRESS=:3000 \
+  ghcr.io/android-sms-gateway/twilio-fallback:latest
 ```
+
+See [compose.yaml](compose.yaml) for the full service definition.
+
+## 🔌 API Overview
+
+| Method | Path            | Description                             |
+| ------ | --------------- | --------------------------------------- |
+| POST   | `/api/twilio`   | Twilio message status callback webhook  |
+| GET    | `/health`       | Liveness probe                          |
+| GET    | `/health/ready` | Readiness probe                         |
+| GET    | `/metrics`      | Prometheus metrics                      |
+
+## 📚 Documentation
+
+- [Twilio Fallback](https://docs.sms-gate.app/services/twilio-fallback/)
+- [Central docs](https://docs.sms-gate.app/)
+
+## 🤝 Contributing
+
+Contributions are welcome. Open an issue or pull request; follow the repo's `make fmt` / `make lint` / `make test` checks and the [contribution guide](https://docs.sms-gate.app/contributing/).
 
 ## 📄 License
 
-This project is licensed under the Apache 2.0 License - see the [LICENSE](LICENSE) file for details.
+Apache-2.0. See [LICENSE](LICENSE).
 
-## ⚖️ Legal Notice
+## 📜 Legal Notice
 
-This project is not affiliated with, endorsed by, or sponsored by Twilio. It is an independent project that utilizes the Twilio API.
+This project is not affiliated with, endorsed by, or sponsored by Twilio. It is an independent project that utilizes the Twilio API. Twilio is a trademark of Twilio Inc.
+
+<!-- Reference-style badge URLs: style=for-the-badge is mandatory -->
+[contributors-shield]: https://img.shields.io/github/contributors/android-sms-gateway/twilio-fallback?style=for-the-badge
+[contributors-url]: https://github.com/android-sms-gateway/twilio-fallback/graphs/contributors
+[forks-shield]: https://img.shields.io/github/forks/android-sms-gateway/twilio-fallback?style=for-the-badge
+[forks-url]: https://github.com/android-sms-gateway/twilio-fallback/network/members
+[stars-shield]: https://img.shields.io/github/stars/android-sms-gateway/twilio-fallback?style=for-the-badge
+[stars-url]: https://github.com/android-sms-gateway/twilio-fallback/stargazers
+[issues-shield]: https://img.shields.io/github/issues/android-sms-gateway/twilio-fallback?style=for-the-badge
+[issues-url]: https://github.com/android-sms-gateway/twilio-fallback/issues
+[license-shield]: https://img.shields.io/github/license/android-sms-gateway/twilio-fallback?style=for-the-badge
+[license-url]: https://github.com/android-sms-gateway/twilio-fallback/blob/master/LICENSE
