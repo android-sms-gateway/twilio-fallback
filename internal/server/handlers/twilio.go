@@ -7,7 +7,7 @@ import (
 	"github.com/android-sms-gateway/twilio-fallback/internal/twilio"
 	"github.com/go-core-fx/fiberfx/handler"
 	"github.com/go-playground/validator/v10"
-	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v3"
 	"go.uber.org/zap"
 )
 
@@ -71,12 +71,12 @@ func (h *TwilioHandler) Register(router fiber.Router) {
 //	@Router			/api/twilio [post]
 //
 // Handle Twilio status callbacks.
-func (h *TwilioHandler) callback(c *fiber.Ctx) error {
+func (h *TwilioHandler) callback(c fiber.Ctx) error {
 	scheme := "https"
-	if c.Protocol() == "http" {
+	if c.Scheme() == "http" {
 		scheme = "http"
 	}
-	url := fmt.Sprintf("%s://%s%s", scheme, c.Hostname(), c.OriginalURL())
+	url := fmt.Sprintf("%s://%s%s", scheme, c.Host(), c.OriginalURL())
 
 	params := map[string]string{}
 	for key, value := range c.Request().PostArgs().All() {

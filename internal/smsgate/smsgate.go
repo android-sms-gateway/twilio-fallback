@@ -56,6 +56,7 @@ func (c *service) Send(ctx context.Context, msg common.Message) (string, error) 
 
 		Message:            "",
 		DataMessage:        nil,
+		MmsMessage:         nil,
 		DeviceID:           "",
 		IsEncrypted:        false,
 		SimNumber:          nil,
